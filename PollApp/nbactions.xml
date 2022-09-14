@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:3.0.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.vmArgs></exec.vmArgs>
+                <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
+                <exec.appArgs></exec.appArgs>
+                <exec.mainClass>${packageClassName}</exec.mainClass>
+                <exec.executable>java</exec.executable>
+                <Env.SLACK_BOT_TOKEN>xoxb-856355697895-4076208832516-gX4KoIlnF4DryucLnY5EkhAC</Env.SLACK_BOT_TOKEN>
+                <Env.SLACK_SIGNING_SECRET>88b98111d243ab5c1faba2fe54eaf351</Env.SLACK_SIGNING_SECRET>
+            </properties>
+        </action>
+    </actions>
