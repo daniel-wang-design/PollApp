@@ -1,1 +1,1 @@
-# PollApp
+# PollApp by Daniel Wang
