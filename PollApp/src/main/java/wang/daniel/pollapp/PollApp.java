@@ -13,7 +13,7 @@ public class PollApp {
     public static void main(String[] args) throws Exception {
         App app = new App();
         app.command("/hello", (req, ctx) -> {
-            return ctx.ack(":wave: Hello!");
+            return ctx.ack(":wave: Hello, it's Daniel!");
         });
 
         SlackAppServer server = new SlackAppServer(app);
