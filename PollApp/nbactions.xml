@@ -15,7 +15,7 @@
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <Env.SLACK_BOT_TOKEN>xoxb-856355697895-4076208832516-m7Ik4ZpjkBX9a6ima1pW02D4</Env.SLACK_BOT_TOKEN>
+                <Env.SLACK_BOT_TOKEN>xoxb-856355697895-4076208832516-mMQKhNepIir1qZM0fOgXTT6P</Env.SLACK_BOT_TOKEN>
                 <Env.SLACK_SIGNING_SECRET>41483620540a92656c1f22c6037cf8fe</Env.SLACK_SIGNING_SECRET>
             </properties>
         </action>
