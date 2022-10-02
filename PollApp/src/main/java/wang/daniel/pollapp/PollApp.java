@@ -2,7 +2,9 @@ package wang.daniel.pollapp;
 
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.jetty.SlackAppServer;
-import com.slack.api.webhook.WebhookResponse;
+import static com.slack.api.model.block.Blocks.*;
+import static com.slack.api.model.block.composition.BlockCompositions.*;
+import static com.slack.api.model.block.element.BlockElements.*;
 
 // ngrok http 3000
 /**
@@ -15,15 +17,17 @@ public class PollApp {
         App app = new App();
         app.command("/test-poll", (req, ctx) -> {
             String userInput = req.getPayload().getText();
-            String channelId = req.getPayload().getChannelId();
-            String channelName = req.getPayload().getChannelName();
 
-            System.out.println("Userinput=" + userInput);
-            System.out.println("channelId=" + channelId);
-            System.out.println("channelName=" + channelName);
             ctx.respond(res -> res
-                    .responseType("in_channel") // respond message visible to everyone in channel
-                    .text("You just said: " + userInput));
+                    .responseType("in_channel")
+                    .blocks(asBlocks(section(section -> section.text(markdownText("Select a date:"))),
+                            divider(),
+                            actions(actions -> actions
+                            .elements(asElements(
+                                    button(b -> b.text(plainText(pt -> pt.emoji(true).text("Monday"))).value("day1")),
+                                    button(b -> b.text(plainText(pt -> pt.emoji(true).text("Tuesday"))).value("day2"))
+                            ))
+                            ))));
             return ctx.ack(); // respond with 200 OK
         });
 
