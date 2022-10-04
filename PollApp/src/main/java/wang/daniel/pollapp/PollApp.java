@@ -3,6 +3,7 @@ package wang.daniel.pollapp;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.jetty.SlackAppServer;
 import static com.slack.api.model.block.Blocks.*;
+import com.slack.api.model.block.LayoutBlock;
 import static com.slack.api.model.block.composition.BlockCompositions.*;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.BlockElements;
@@ -23,10 +24,10 @@ public class PollApp {
             String userInput = req.getPayload().getText();
             String[][] buttons = new String[5][2];
             buttons[0] = new String[]{"Monday", "1"};
-            buttons[0] = new String[]{"Tuesday", "2"};
-            buttons[0] = new String[]{"Wednesday", "3"};
-            buttons[0] = new String[]{"Thursday", "4"};
-            buttons[0] = new String[]{"Friday", "5"};
+            buttons[1] = new String[]{"Tuesday", "2"};
+            buttons[2] = new String[]{"Wednesday", "3"};
+            buttons[3] = new String[]{"Thursday", "4"};
+            buttons[4] = new String[]{"Friday", "5"};
             ctx.respond(res -> res
                     .responseType("in_channel")
                     .blocks(asBlocks(section(section -> section.text(markdownText("Select a date:"))),
@@ -65,11 +66,8 @@ public class PollApp {
      */
     public static List<BlockElement> generateButtons(String[][] buttons) {
         List<BlockElement> list = new ArrayList<>();
-        for (String[] str : buttons) {
-            list.add(button(b -> b.text(plainText(pt -> pt.emoji(true)
-                    .text(str[0])))
-                    .actionId("buttonAction")
-                    .value(str[1])));
+        for (String[] button : buttons) {
+            list.add(button(b -> b.text(plainText(pt -> pt.emoji(true).text(button[0]))).actionId(button[0]+"buttonAction").value(button[1])));
         }
         return list;
     }
