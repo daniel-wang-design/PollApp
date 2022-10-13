@@ -10,40 +10,48 @@ import com.slack.api.model.block.element.BlockElements;
 import static com.slack.api.model.block.element.BlockElements.*;
 import com.slack.api.model.block.element.ButtonElement;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 // ngrok http 3000
+// https://vercel.com/pricing
 /**
  *
  * @author wangd project started September 12, 2022
  */
 public class PollApp {
 
+    private static String[][] buttons1;
+
     public static void main(String[] args) throws Exception {
         App app = new App();
         app.command("/test-poll", (req, ctx) -> {
             String userInput = req.getPayload().getText();
-            String[][] buttons = new String[5][2];
-            buttons[0] = new String[]{"Monday", "1"};
-            buttons[1] = new String[]{"Tuesday", "2"};
-            buttons[2] = new String[]{"Wednesday", "3"};
-            buttons[3] = new String[]{"Thursday", "4"};
-            buttons[4] = new String[]{"Friday", "5"};
-            ctx.respond(res -> res
-                    .responseType("in_channel")
-                    .blocks(asBlocks(section(section -> section.text(markdownText("Select a date:"))),
-                            divider(),
-                            actions(actions -> actions
-                            .elements(generateButtons(buttons))
-                            )))
-            );
-            return ctx.ack(); // respond with 200 OK
-        });
-        app.blockAction("buttonAction", (req, ctx) -> { // responding to this action_id
-            String value = req.getPayload().getActions().get(0).getValue();
-            if (req.getPayload().getResponseUrl() != null) {
+            try {
+                final String[][] buttons = processedInput(userInput);
+                buttons1 = buttons;
                 ctx.respond(res -> res
                         .responseType("in_channel")
-                        .text("You sent the value of the button=" + value));
+                        .blocks(asBlocks(section(section
+                                -> section.text(markdownText("Select a day:"))),
+                                divider(),
+                                actions(actions -> actions
+                                .elements(generateButtons(buttons))
+                                )))
+                );
+            } catch (Exception e) {
+                ctx.respond(e.getMessage());
+            }
+            return ctx.ack(); // respond with 200 OK
+        });
+
+        Pattern buttonPattern = Pattern.compile("buttonAction");
+        app.blockAction(buttonPattern, (req, ctx) -> { // responding to this action_id
+            String value = req.getPayload().getActions().get(0).getValue();
+            if (req.getPayload().getResponseUrl() != null) {
+                for (String[] str : buttons1) {
+                  //  if (("buttonAction"+str[1]).equals(value))
+                }
             }
             return ctx.ack();
         });
@@ -52,22 +60,27 @@ public class PollApp {
         server.start();
     }
 
-    public static String[][] processedInput(String in) {
-        return null;
+    // processes the user input to give a String[][] of options that can be made into buttons
+    public static String[][] processedInput(String in) throws Exception {
+        // takes input in the form /test-poll "Title" "Option 1" "Option 2" ...
+        String[] items = in.split(" ");
+        String[][] input = new String[items.length - 1][2];
+        for (int i = 0; i < items.length - 1; i++) {
+            input[i] = new String[]{items[i], Integer.toString(i)};
+        }
+        return input;
     }
 
-    /**
-     * Takes a String[][] of buttons and creates a List of BlockElements
-     *
-     * @param buttons is a 2 by x list of String values, where the first value
-     * refers to the text displayed, and the second refers to the value when
-     * clicked
-     * @return List<BlockElement> a list of buttons
-     */
+    // takes String[][] and creates a list of buttons
     public static List<BlockElement> generateButtons(String[][] buttons) {
         List<BlockElement> list = new ArrayList<>();
         for (String[] button : buttons) {
-            list.add(button(b -> b.text(plainText(pt -> pt.emoji(true).text(button[0]))).actionId(button[0]+"buttonAction").value(button[1])));
+            list.add(button(b
+                    -> b.text(plainText(pt -> pt
+                    .emoji(true)
+                    .text(button[0])))
+                            .actionId("buttonAction" + button[0])
+                            .value(button[1])));
         }
         return list;
     }
