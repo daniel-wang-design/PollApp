@@ -22,10 +22,12 @@ import java.util.regex.Matcher;
 public class PollApp {
 
     private static String[][] buttons1;
+    private static int[] buttons1Count = new int[7];
 
     public static void main(String[] args) throws Exception {
         App app = new App();
-        app.command("/test-poll", (req, ctx) -> {
+
+        app.command("/date-poll", (req, ctx) -> {
             String userInput = req.getPayload().getText();
             try {
                 final String[][] buttons = processedInput(userInput);
@@ -44,15 +46,11 @@ public class PollApp {
             }
             return ctx.ack(); // respond with 200 OK
         });
-
-        Pattern buttonPattern = Pattern.compile("buttonAction");
-        app.blockAction(buttonPattern, (req, ctx) -> { // responding to this action_id
-            String value = req.getPayload().getActions().get(0).getValue();
-            if (req.getPayload().getResponseUrl() != null) {
-                for (String[] str : buttons1) {
-                  //  if (("buttonAction"+str[1]).equals(value))
-                }
-            }
+        app.blockAction("datePicker0", (req, ctx) -> { // responding to this action_id
+            String value = req.getPayload().getUser().getId();
+            buttons1Count[0]++;
+            ctx.respond("Got answer from: " + value);
+            System.out.println(Arrays.toString(buttons1Count));
             return ctx.ack();
         });
 
@@ -62,10 +60,10 @@ public class PollApp {
 
     // processes the user input to give a String[][] of options that can be made into buttons
     public static String[][] processedInput(String in) throws Exception {
-        // takes input in the form /test-poll "Title" "Option 1" "Option 2" ...
+        // takes input in the form /test-poll Option1 Option2 ...
         String[] items = in.split(" ");
-        String[][] input = new String[items.length - 1][2];
-        for (int i = 0; i < items.length - 1; i++) {
+        String[][] input = new String[items.length][2];
+        for (int i = 0; i < items.length; i++) {
             input[i] = new String[]{items[i], Integer.toString(i)};
         }
         return input;
@@ -79,7 +77,7 @@ public class PollApp {
                     -> b.text(plainText(pt -> pt
                     .emoji(true)
                     .text(button[0])))
-                            .actionId("buttonAction" + button[0])
+                            .actionId("datePicker" + button[1])
                             .value(button[1])));
         }
         return list;
