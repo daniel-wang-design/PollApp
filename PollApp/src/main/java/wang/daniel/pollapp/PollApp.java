@@ -14,6 +14,7 @@ import static com.slack.api.model.block.element.BlockElements.*;
 import com.slack.api.model.block.element.ButtonElement;
 import com.slack.api.model.block.element.RichTextSectionElement.Text;
 import java.util.*;
+import java.util.Map;
 
 // ngrok http 3000
 // https://vercel.com/pricing
@@ -296,6 +297,10 @@ public class PollApp {
             }
             return ctx.ack();
         });
+        App oauthApp = new App().asOAuthApp(true);
+//        SlackAppServer server = new SlackAppServer(Map.of(
+//                "/slack/events", app, 
+//                "/slack/oauth", oauthApp));
         SlackAppServer server = new SlackAppServer(app);
         server.start();
     }
