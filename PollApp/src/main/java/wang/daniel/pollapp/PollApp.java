@@ -14,11 +14,11 @@ import static com.slack.api.model.block.element.BlockElements.*;
 import com.slack.api.model.block.element.ButtonElement;
 import com.slack.api.model.block.element.RichTextSectionElement.Text;
 import java.util.*;
-import java.util.Map;
+import com.slack.api.bolt.service.builtin.AmazonS3InstallationService;
+import com.slack.api.bolt.service.builtin.AmazonS3OAuthStateService;
+import wang.daniel.pollapp.Polls;
 
-// ngrok http 3000
-// https://vercel.com/pricing
-// https://signup.heroku.com/ 
+
 /**
  *
  * @author wangd project started September 12, 2022
@@ -34,6 +34,7 @@ public class PollApp {
     private static String[][] timeButtons;
     private static int[] timeButtonsCount = new int[10];
     private static ArrayList[] timeButtonsCheck = new ArrayList[10];
+    private static Polls pollRunning = Polls.noPoll;
 
     public static void main(String[] args) throws Exception {
         App app = new App();
@@ -45,6 +46,12 @@ public class PollApp {
         }
 
         app.command("/date-poll", (req, ctx) -> {
+            if (pollRunning == Polls.noPoll) {
+                pollRunning = Polls.datePoll;
+            } else {
+                return ctx.ack("You already have a poll running! "
+                        + "Type /display-results to end the poll and view results.");
+            }
             String userInput = req.getPayload().getText();
             try {
                 final String[][] buttons = processedInput(userInput, 7);
@@ -79,6 +86,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[0][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.blockAction("datePicker1", (req, ctx) -> { // responding to second option
@@ -94,6 +102,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[1][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.blockAction("datePicker2", (req, ctx) -> { // responding to third option
@@ -109,6 +118,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[2][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.blockAction("datePicker3", (req, ctx) -> { // responding to fourth option
@@ -124,6 +134,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[3][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons,  value));
             return ctx.ack();
         });
         app.blockAction("datePicker4", (req, ctx) -> { // responding to fifth option
@@ -139,6 +150,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[4][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.blockAction("datePicker5", (req, ctx) -> { // responding to sixth option
@@ -154,6 +166,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[5][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.blockAction("datePicker6", (req, ctx) -> { // responding to seventh option
@@ -169,6 +182,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + dateButtons[6][0] + ", was removed!");
                 System.out.println(Arrays.toString(dateButtonsCount));
             }
+            ctx.respond(getResponses(dateButtonsCheck, dateButtons, value));
             return ctx.ack();
         });
         app.command("/time-poll", (req, ctx) -> {
@@ -205,6 +219,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[0][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker1", (req, ctx) -> { // responding to first option
@@ -220,6 +235,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[1][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker2", (req, ctx) -> { // responding to first option
@@ -235,6 +251,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[2][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker3", (req, ctx) -> { // responding to first option
@@ -250,6 +267,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[3][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker4", (req, ctx) -> { // responding to first option
@@ -265,6 +283,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[4][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker5", (req, ctx) -> { // responding to first option
@@ -280,6 +299,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[5][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         app.blockAction("timePicker6", (req, ctx) -> { // responding to first option
@@ -295,6 +315,7 @@ public class PollApp {
                 ctx.respond("Your selection of: " + timeButtons[6][0] + ", was removed!");
                 System.out.println(Arrays.toString(timeButtonsCount));
             }
+            ctx.respond(getResponses(timeButtonsCheck, timeButtons, value));
             return ctx.ack();
         });
         App oauthApp = new App().asOAuthApp(true);
@@ -303,6 +324,16 @@ public class PollApp {
 //                "/slack/oauth", oauthApp));
         SlackAppServer server = new SlackAppServer(app);
         server.start();
+    }
+
+    public static String getResponses(ArrayList[] list, String[][] buttons, String user) {
+        String val = "You have selected the following:\n";
+        for (int i = 0; i < list.length; i++) {
+            if (list[i].contains(user)) {
+                val += "-> " + buttons[i][0] + "\n";
+            }
+        }
+        return val;
     }
 
     // processes the user input to give a String[][] of options that can be made into buttons
