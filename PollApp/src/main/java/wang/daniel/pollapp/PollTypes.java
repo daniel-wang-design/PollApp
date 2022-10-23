@@ -8,6 +8,6 @@ package wang.daniel.pollapp;
  *
  * @author wangd
  */
-public class Polls {
-    
+public enum PollTypes {
+    noPoll, datePoll, timePoll, anonymousDatePoll, anonymousTimePoll;
 }
