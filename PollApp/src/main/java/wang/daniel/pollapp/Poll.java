@@ -18,6 +18,7 @@ public class Poll {
     private ArrayList<Button> buttons;
     private PollTypes type;
     private ArrayList<BlockElement> interactiveButtons;
+    private String userID;
 
     public Poll() {
         this.type = PollTypes.noPoll;
@@ -25,15 +26,17 @@ public class Poll {
         interactiveButtons = new ArrayList<>();
     }
 
-    public void createPoll(PollTypes type, String userInput) throws Exception {
+    public void createPoll(PollTypes type, String userInput, String userID) throws Exception {
         if (this.type != PollTypes.noPoll) {
             throw new Exception("You already have a poll running! "
                     + "Type /display-results to end the poll and view results.");
         }
+        this.type = type;
+        this.userID = userID;
         switch (this.type) {
             case datePoll -> {
                 try {
-                    processedInput(userInput, 7, "datePoll");
+                    processedInput(userInput, 7, "datePicker");
                     generateButtons();
                 } catch (Exception e) {
                     throw new Exception(e);
@@ -41,14 +44,11 @@ public class Poll {
             }
             case timePoll -> {
                 try {
-                    processedInput(userInput, 10, "timePoll");
+                    processedInput(userInput, 10, "timePicker");
                     generateButtons();
                 } catch (Exception e) {
                     throw new Exception(e);
                 }
-            }
-            default -> {
-                throw new Exception("Something went wrong...");
             }
         }
     }
@@ -69,8 +69,8 @@ public class Poll {
             interactiveButtons.add(button(b
                     -> b.text(plainText(pt -> pt
                     .emoji(true)
-                    .text(button.buttonText())))
-                            .actionId(button.buttonID())));
+                    .text(button.getButtonText())))
+                            .actionId(button.getButtonID())));
         });
     }
 
@@ -95,11 +95,40 @@ public class Poll {
         str.append("You have selected the following:\n");
         this.buttons.forEach(button -> {
             if (button.getUsers().contains(user)) {
-                String val = "-> " + button.buttonText() + "\n";
+                String val = "• " + button.getButtonText() + "\n";
                 str.append(val);
             }
         });
         return str.toString();
+    }
+
+    public String getResults(String userID) {
+        final StringBuilder str = new StringBuilder();
+        if (this.type == PollTypes.noPoll) {
+            return "No poll running! Type _/help_ for help!";
+        }
+        if (!userID.equals(this.userID)) {
+            return "You don't have permission to view poll results :(";
+        }
+        this.buttons.forEach(button -> {
+            str.append(String.format("• %s: _%d vote(s)_\n",
+                    button.getButtonText(),
+                    button.getCounter()));
+        });
+        str.append(mostVotes());
+        return str.toString();
+    }
+
+    public String mostVotes() {
+        ArrayList<Button> sorted = this.buttons;
+        sorted.sort((Button b1, Button b2) -> {
+            return b2.getCounter() - b1.getCounter();
+        });
+        String str = "\nHere are the poll results sorted in order:\n";
+        for (Button button : sorted) {
+            str += String.format("• %s, _%d vote(s)_\n", button.getButtonText(), button.getCounter());
+        }
+        return str;
     }
 
     public ArrayList<BlockElement> getInteractiveButtons() {
@@ -107,27 +136,46 @@ public class Poll {
     }
 }
 
-record Button(String buttonText, String buttonID) {
+class Button {
 
-    private static ArrayList<String> users = new ArrayList<>();
-    private static int counter;
+    private ArrayList<String> users = new ArrayList<>();
+    private int counter;
+    private String buttonText, buttonID;
+
+    public Button(String buttonText, String buttonID) {
+        this.buttonID = buttonID;
+        this.buttonText = buttonText;
+        this.counter = 0;
+    }
 
     public String updateVote(String userID) {
         String message = "";
         if (users.contains(userID)) {
             counter--;
             users.remove(userID);
-            message = "Your selection of: " + buttonText + " was removed.";
+            message = String.format("Your selection of: _%s_ was removed! ", buttonText);
         } else {
             counter++;
             users.add(userID);
-            message = "Your selection of: " + buttonText + " was recorded.";
+            message = String.format("Your selection of: _%s_ was recorded! ", buttonText);
         }
         return message;
     }
 
     public ArrayList<String> getUsers() {
         return this.users;
+    }
+
+    public String getButtonID() {
+        return this.buttonID;
+    }
+
+    public String getButtonText() {
+        return this.buttonText;
+    }
+
+    public int getCounter() {
+        return this.counter;
     }
 
 }
