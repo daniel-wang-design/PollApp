@@ -89,27 +89,6 @@ public class PollApp {
                             Or use _/display-results all_ to make results available to everyone.""");
             return ctx.ack();
         });
-
-        app.message("secret", (req, ctx) -> {
-            var logger = ctx.logger;
-            try {
-                var event = req.getEvent();
-                // Call the chat.postEphemeral method using the built-in WebClient
-                var result = ctx.client().chatPostEphemeral(r -> r
-                        // The token you used to initialize your app is stored in the `context` object
-                        .token(ctx.getBotToken())
-                        // Payload message should be posted in the channel where original message was heard
-                        .channel(event.getChannel())
-                        // The user the message should appear for
-                        .user(event.getUser())
-                        .text("Shhhh only you can see this :shushing_face:")
-                );
-                logger.info("result: {}", result);
-            } catch (IOException | SlackApiException e) {
-                logger.error("error: {}", e.getMessage(), e);
-            }
-            return ctx.ack();
-        });
         app.command("/help", (req, ctx) -> {
             ctx.respond("""
                         • _/help_ --> Open help menu. For additional help, type _/examples_
@@ -134,10 +113,10 @@ public class PollApp {
             ctx.respond("""
                         
                         
-                        • _/date-poll Mon Tue Wed Thu Fri Sat Sun
+                        • _/date-poll Mon Tue Wed Thu Fri Sat Sun_
                         
                         
-                        • _/time-poll 1PM 2PM 3PM
+                        • _/time-poll 1PM 2PM 3PM_
                         
                         
                         • _/display-results self_

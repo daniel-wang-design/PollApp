@@ -117,7 +117,7 @@ public class Poll {
                     button.getCounter()));
         });
         str.append(mostVotes());
-
+        str.append(getVoters());
         return str.toString();
     }
 
@@ -127,7 +127,13 @@ public class Poll {
         this.buttons.forEach(button -> {
             str.append(String.format("• %s: ", button.getButtonText()));
             button.getUsernames().forEach(user -> str.append(user + ", "));
+            str.append("\n");
         });
+
+        if (!this.buttons.get(this.buttons.size() - 1).getUsernames().isEmpty()) {
+            str.deleteCharAt(str.length() - 1);
+            str.deleteCharAt(str.length() - 2);
+        }
         return str.toString();
     }
 
