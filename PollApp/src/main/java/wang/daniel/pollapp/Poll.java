@@ -4,6 +4,7 @@
  */
 package wang.daniel.pollapp;
 
+import com.slack.api.Slack;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import com.slack.api.model.block.element.BlockElement;
 import static com.slack.api.model.block.element.BlockElements.button;
@@ -74,16 +75,16 @@ public class Poll {
         });
     }
 
-    public String updateVote(String userID, String buttonID) {
+    public String updateVote(String userID, String buttonID, String username) {
         String str = "";
         switch (this.type) {
             case datePoll -> {
                 int index = Integer.parseInt(buttonID.replace("datePicker", ""));
-                str = this.buttons.get(index).updateVote(userID);
+                str = this.buttons.get(index).updateVote(userID, username);
             }
             case timePoll -> {
                 int index = Integer.parseInt(buttonID.replace("timePicker", ""));
-                str = this.buttons.get(index).updateVote(userID);
+                str = this.buttons.get(index).updateVote(userID, username);
             }
         }
         str += getResponses(userID);
@@ -103,7 +104,7 @@ public class Poll {
     }
 
     public String getResults(String userID) {
-        final StringBuilder str = new StringBuilder();
+        final var str = new StringBuilder();
         if (this.type == PollTypes.noPoll) {
             return "No poll running! Type _/help_ for help!";
         }
@@ -116,11 +117,22 @@ public class Poll {
                     button.getCounter()));
         });
         str.append(mostVotes());
+
+        return str.toString();
+    }
+
+    public String getVoters() {
+        StringBuilder str = new StringBuilder();
+        str.append("\nHere is a list of all voters:\n");
+        this.buttons.forEach(button -> {
+            str.append(String.format("• %s: ", button.getButtonText()));
+            button.getUsernames().forEach(user -> str.append(user + ", "));
+        });
         return str.toString();
     }
 
     public String mostVotes() {
-        ArrayList<Button> sorted = this.buttons;
+        var sorted = this.buttons;
         sorted.sort((Button b1, Button b2) -> {
             return b2.getCounter() - b1.getCounter();
         });
@@ -139,6 +151,7 @@ public class Poll {
 class Button {
 
     private ArrayList<String> users = new ArrayList<>();
+    private ArrayList<String> usernames = new ArrayList<>();
     private int counter;
     private String buttonText, buttonID;
 
@@ -148,15 +161,17 @@ class Button {
         this.counter = 0;
     }
 
-    public String updateVote(String userID) {
+    public String updateVote(String userID, String username) {
         String message = "";
         if (users.contains(userID)) {
             counter--;
+            usernames.remove(username);
             users.remove(userID);
             message = String.format("Your selection of: _%s_ was removed! ", buttonText);
         } else {
             counter++;
             users.add(userID);
+            usernames.add(username);
             message = String.format("Your selection of: _%s_ was recorded! ", buttonText);
         }
         return message;
@@ -164,6 +179,10 @@ class Button {
 
     public ArrayList<String> getUsers() {
         return this.users;
+    }
+
+    public ArrayList<String> getUsernames() {
+        return this.usernames;
     }
 
     public String getButtonID() {
