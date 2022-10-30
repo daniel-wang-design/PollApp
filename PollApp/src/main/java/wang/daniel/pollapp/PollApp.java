@@ -24,11 +24,7 @@ public class PollApp {
     public static void main(String[] args) throws Exception {
         App app = new App();
         poll = new Poll();
-        ////////////////////////
         database = new Database();
-        //database.upload();
-        // database.download();
-        ////////////////////////
         app.command("/date-poll", (req, ctx) -> {
             String userInput = req.getPayload().getText();
             String userID = req.getPayload().getUserId();
