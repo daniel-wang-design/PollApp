@@ -19,10 +19,16 @@ import org.slf4j.LoggerFactory;
 public class PollApp {
 
     private static Poll poll;
+    private static Database database;
 
     public static void main(String[] args) throws Exception {
         App app = new App();
         poll = new Poll();
+        ////////////////////////
+        database = new Database();
+        //database.upload();
+        // database.download();
+        ////////////////////////
         app.command("/date-poll", (req, ctx) -> {
             String userInput = req.getPayload().getText();
             String userID = req.getPayload().getUserId();
@@ -54,6 +60,48 @@ public class PollApp {
                         .blocks(asBlocks(section(section
                                 -> section.text(markdownText((a) -> {
                             return a.text("*Please pick a time!*");
+                        }))),
+                                divider(),
+                                actions(actions -> actions
+                                .elements(poll.getInteractiveButtons())
+                                )))
+                );
+            } catch (Exception e) {
+                return ctx.ack(e.getMessage());
+            }
+            return ctx.ack();
+        });
+        app.command("/anon-date-poll", (req, ctx) -> {
+            String userInput = req.getPayload().getText();
+            String userID = req.getPayload().getUserId();
+            try {
+                poll.createPoll(PollTypes.anonymousDatePoll, userInput, userID);
+                ctx.respond(res -> res
+                        .responseType("in_channel")
+                        .blocks(asBlocks(section(section
+                                -> section.text(markdownText((a) -> {
+                            return a.text("*Please pick a date!* This poll is anonymous.");
+                        }))),
+                                divider(),
+                                actions(actions -> actions
+                                .elements(poll.getInteractiveButtons())
+                                )))
+                );
+            } catch (Exception e) {
+                return ctx.ack(e.getMessage());
+            }
+            return ctx.ack();
+        });
+        app.command("/anon-time-poll", (req, ctx) -> {
+            String userInput = req.getPayload().getText();
+            String userID = req.getPayload().getUserId();
+            try {
+                poll.createPoll(PollTypes.anonymousTimePoll, userInput, userID);
+                ctx.respond(res -> res
+                        .responseType("in_channel")
+                        .blocks(asBlocks(section(section
+                                -> section.text(markdownText((a) -> {
+                            return a.text("*Please pick a date!* This poll is anonymous.");
                         }))),
                                 divider(),
                                 actions(actions -> actions
@@ -123,6 +171,29 @@ public class PollApp {
                         
                         """);
 
+            return ctx.ack();
+        });
+        app.command("/save", (req, ctx) -> {
+            String user = req.getPayload().getUserId();
+            String message = poll.getResults(user);
+            database.download(); // retrive past results to disk
+            var response = database.save(poll, message); // update past results \
+            database.upload(); // update database
+            poll.clear();
+            ctx.respond(response);
+            return ctx.ack();
+        });
+        app.command("/clear", (req, ctx) -> {
+            database.download();
+            ctx.respond(database.clear());
+            database.upload();
+            return ctx.ack();
+        });
+        app.command("/view", (req, ctx) -> {
+            String num = req.getPayload().getText();
+            database.download();
+            String message = database.view(num);
+            ctx.respond(message);
             return ctx.ack();
         });
         app.blockAction("datePicker0", (req, ctx) -> { // responding to first option

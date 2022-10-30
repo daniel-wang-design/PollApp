@@ -40,7 +40,7 @@ public class Poll {
                     processedInput(userInput, 7, "datePicker");
                     generateButtons();
                 } catch (Exception e) {
-                    throw new Exception(e);
+                    throw new Exception(e.getMessage());
                 }
             }
             case timePoll -> {
@@ -48,13 +48,32 @@ public class Poll {
                     processedInput(userInput, 10, "timePicker");
                     generateButtons();
                 } catch (Exception e) {
-                    throw new Exception(e);
+                    throw new Exception(e.getMessage());
+                }
+            }
+            case anonymousDatePoll -> {
+                try {
+                    processedInput(userInput, 7, "datePicker");
+                    generateButtons();
+                } catch (Exception e) {
+                    throw new Exception(e.getMessage());
+                }
+            }
+            case anonymousTimePoll -> {
+                try {
+                    processedInput(userInput, 10, "timePicker");
+                    generateButtons();
+                } catch (Exception e) {
+                    throw new Exception(e.getMessage());
                 }
             }
         }
     }
 
     public void processedInput(String in, int max, String buttonID) throws Exception {
+        if (in == null) {
+            throw new Exception("Please include at least 1 option!");
+        }
         String[] items = in.split(" ");
         if (items.length > max) {
             throw new Exception(String.format("You added too many dates. Max is %d!", max));
@@ -83,6 +102,14 @@ public class Poll {
                 str = this.buttons.get(index).updateVote(userID, username);
             }
             case timePoll -> {
+                int index = Integer.parseInt(buttonID.replace("timePicker", ""));
+                str = this.buttons.get(index).updateVote(userID, username);
+            }
+            case anonymousDatePoll -> {
+                int index = Integer.parseInt(buttonID.replace("datePicker", ""));
+                str = this.buttons.get(index).updateVote(userID, username);
+            }
+            case anonymousTimePoll -> {
                 int index = Integer.parseInt(buttonID.replace("timePicker", ""));
                 str = this.buttons.get(index).updateVote(userID, username);
             }
@@ -117,7 +144,9 @@ public class Poll {
                     button.getCounter()));
         });
         str.append(mostVotes());
-        str.append(getVoters());
+        if (this.type == PollTypes.datePoll || this.type == PollTypes.timePoll) {
+            str.append(getVoters());
+        }
         return str.toString();
     }
 
@@ -148,9 +177,19 @@ public class Poll {
         }
         return str;
     }
+    public void clear() {
+        this.type = PollTypes.noPoll;
+        this.buttons.clear();
+        this.userID = null;
+        this.interactiveButtons.clear();
+    }
 
     public ArrayList<BlockElement> getInteractiveButtons() {
         return this.interactiveButtons;
+    }
+
+    public PollTypes getType() {
+        return this.type;
     }
 }
 
